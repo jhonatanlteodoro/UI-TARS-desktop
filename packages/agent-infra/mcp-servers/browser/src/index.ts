@@ -109,14 +109,12 @@ program
     'Run server that uses screenshots (Aria snapshots are used by default)',
   )
   .hook('preAction', async () => {
-    console.log(
-      '[mcp-server-browser] Initializing middlewares and configurations...',
-    );
+    // console.log(
+    //   '[mcp-server-browser] Initializing middlewares and configurations...',
+    // );
   })
   .action(async (options) => {
     try {
-      console.log('[mcp-server-browser] options', options);
-
       const createMcpServer = async (
         mcpServerConfig: ContextOptions & Pick<GlobalConfig, 'logger'> = {},
       ) => {
