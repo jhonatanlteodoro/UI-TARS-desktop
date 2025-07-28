@@ -12,7 +12,7 @@ import { program } from 'commander';
 import { BaseLogger } from '@agent-infra/logger';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { createServer, getBrowser, setConfig, getConfig } from './server.js';
-import { ContextOptions } from './typings.js';
+import { ContextOptions, GlobalConfig } from './typings.js';
 import { parserFactor, parseViewportSize } from './utils/utils.js';
 import {
   setRequestContext,
@@ -117,7 +117,10 @@ program
     try {
       console.log('[mcp-server-browser] options', options);
 
-      const createMcpServer = async (contextOptions: ContextOptions = {}) => {
+      const createMcpServer = async (
+        mcpServerConfig: ContextOptions & Pick<GlobalConfig, 'logger'> = {},
+      ) => {
+        const { logger, ...contextOptions } = mcpServerConfig;
         const server = createServer({
           ...((options.cdpEndpoint || options.wsEndpoint) && {
             remoteOptions: {
@@ -125,6 +128,7 @@ program
               cdpEndpoint: options.cdpEndpoint,
             },
           }),
+          logger,
           vision: options.vision,
           launchOptions: {
             headless: options.headless,
@@ -182,6 +186,11 @@ program
       } else {
         const server = await createMcpServer({
           userAgent: options.userAgent,
+          /**
+           * The server MUST NOT write anything to its stdout that is not a valid MCP message.
+           * issue: https://github.com/bytedance/UI-TARS-desktop/issues/888#issuecomment-3125273977
+           */
+          logger: new BaseLogger(),
           viewportSize: parseViewportSize(options.viewportSize),
           factors: parserFactor(process.env.VISION_FACTOR || ''),
         });
