@@ -7,7 +7,7 @@ import express from 'express';
 import http from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import { setupAPI } from './api';
-import { LogLevel } from '@tarko/agent-server-interface';
+import { LogLevel } from '@tarko/interface';
 import { StorageProvider, createStorageProvider } from './storage';
 import { setupSocketIO } from './core/SocketHandlers';
 import type { AgentSession } from './core';
@@ -20,7 +20,7 @@ import type {
   AgioProviderConstructor,
   IAgent,
 } from './types';
-import { TARKO_CONSTANTS, GlobalDirectoryOptions } from '@tarko/agent-server-interface';
+import { TARKO_CONSTANTS, GlobalDirectoryOptions } from '@tarko/interface';
 
 export { express };
 
@@ -198,8 +198,10 @@ export class AgentServer<T extends AgentAppConfig = AgentAppConfig> {
    * @returns Promise resolving with the server instance
    */
   async start(): Promise<http.Server> {
-    // Resolve agent implementation
-    const agentResolutionResult = await resolveAgentImplementation(this.appConfig.agent);
+    // Resolve agent implementation with workspace context
+    const agentResolutionResult = await resolveAgentImplementation(this.appConfig.agent, {
+      workspace: this.appConfig.workspace,
+    });
     this.currentAgentResolution = agentResolutionResult;
 
     // Initialize storage if available
