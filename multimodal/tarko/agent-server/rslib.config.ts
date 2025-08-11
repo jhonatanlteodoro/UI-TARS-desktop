@@ -28,13 +28,13 @@ export default defineConfig({
         peerDependencies: true,
       },
       output: {
-        externals: ['@tarko/shared-media-utils'],
+        externals: ['@tarko/context-engineer', '@tarko/context-engineer/node'],
       },
     },
   ],
   output: {
     target: 'node',
-    cleanDistPath: false,
+    cleanDistPath: true,
     sourceMap: true,
   },
 });

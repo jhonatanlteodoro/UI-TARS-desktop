@@ -3,8 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import path from 'path';
 import { deepMerge, isTest } from '@tarko/shared-utils';
 import {
+  CommonFilterOptions,
   AgentCLIArguments,
   ModelProviderName,
   AgentAppConfig,
@@ -12,7 +14,6 @@ import {
   isAgentWebUIImplementationType,
 } from '@tarko/interface';
 import { resolveValue } from '../utils';
-import path from 'path';
 
 /**
  * Handler for processing deprecated CLI options
@@ -64,6 +65,10 @@ export function buildAppConfig<
     apiKey,
     baseURL,
     shareProvider,
+    // Extract tool filter options
+    tool,
+    // Extract MCP server filter options
+    mcpServer,
     ...cliConfigProps
   } = cliArguments;
 
@@ -74,6 +79,12 @@ export function buildAppConfig<
     baseURL,
     shareProvider,
   });
+
+  // Handle tool filter options
+  handleToolFilterOptions(cliConfigProps, { tool });
+
+  // Handle MCP server filter options
+  handleMCPServerFilterOptions(cliConfigProps, { mcpServer });
 
   // Allow external handler to process additional options
   if (cliOptionsEnhancer) {
@@ -254,5 +265,118 @@ function applyWebUIDefaults(config: AgentAppConfig): void {
   if (!config.webui.logo) {
     config.webui.logo =
       'https://lf3-static.bytednsdoc.com/obj/eden-cn/zyha-aulnh/ljhwZthlaukjlkulzlp/appicon.png';
+  }
+}
+
+/**
+ * Handle tool filter CLI options
+ */
+function handleToolFilterOptions(
+  config: Partial<AgentAppConfig>,
+  toolOptions: {
+    tool?: {
+      include?: string | string[];
+      exclude?: string | string[];
+    };
+  },
+): void {
+  const { tool } = toolOptions;
+
+  if (!tool) {
+    return;
+  }
+
+  // Initialize tool config if it doesn't exist
+  if (!config.tool) {
+    config.tool = {};
+  }
+
+  // Handle include patterns
+  if (tool.include) {
+    const includePatterns = Array.isArray(tool.include) ? tool.include : [tool.include];
+    // Flatten comma-separated patterns
+    const flattenedInclude = includePatterns.flatMap((pattern) =>
+      pattern
+        .split(',')
+        .map((p) => p.trim())
+        .filter((p) => p.length > 0),
+    );
+    if (flattenedInclude.length > 0) {
+      config.tool.include = flattenedInclude;
+    }
+  }
+
+  // Handle exclude patterns
+  if (tool.exclude) {
+    const excludePatterns = Array.isArray(tool.exclude) ? tool.exclude : [tool.exclude];
+    // Flatten comma-separated patterns
+    const flattenedExclude = excludePatterns.flatMap((pattern) =>
+      pattern
+        .split(',')
+        .map((p) => p.trim())
+        .filter((p) => p.length > 0),
+    );
+    if (flattenedExclude.length > 0) {
+      config.tool.exclude = flattenedExclude;
+    }
+  }
+}
+
+/**
+ * Handle MCP server filter CLI options
+ */
+function handleMCPServerFilterOptions(
+  config: Partial<AgentAppConfig>,
+  mcpServerOptions: {
+    mcpServer?: CommonFilterOptions;
+  },
+): void {
+  const { mcpServer } = mcpServerOptions;
+
+  if (!mcpServer) {
+    return;
+  }
+
+  // Initialize mcpServer config if it doesn't exist
+  // @ts-expect-error
+  if (!config.mcpServer) {
+    // @ts-expect-error
+    config.mcpServer = {};
+  }
+
+  // Handle include patterns
+  if (mcpServer.include) {
+    const includePatterns = Array.isArray(mcpServer.include)
+      ? mcpServer.include
+      : [mcpServer.include];
+    // Flatten comma-separated patterns
+    const flattenedInclude = includePatterns.flatMap((pattern) =>
+      pattern
+        .split(',')
+        .map((p) => p.trim())
+        .filter((p) => p.length > 0),
+    );
+    if (flattenedInclude.length > 0) {
+      // @ts-expect-error
+      config.mcpServer.include = flattenedInclude;
+    }
+  }
+
+  // Handle exclude patterns
+  if (mcpServer.exclude) {
+    const excludePatterns = Array.isArray(mcpServer.exclude)
+      ? mcpServer.exclude
+      : [mcpServer.exclude];
+    // Flatten comma-separated patterns
+    const flattenedExclude = excludePatterns.flatMap((pattern) =>
+      pattern
+        .split(',')
+        .map((p) => p.trim())
+        .filter((p) => p.length > 0),
+    );
+    if (flattenedExclude.length > 0) {
+      // @ts-expect-error
+      config.mcpServer.exclude = flattenedExclude;
+    }
   }
 }

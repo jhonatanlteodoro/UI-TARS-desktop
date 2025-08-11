@@ -10,6 +10,23 @@ import { ProviderOptions, LLMReasoningOptions } from '@tarko/model-provider/type
 import { AgentEventStream } from './agent-event-stream';
 import { LogLevel } from '@agent-infra/logger';
 
+/**
+ * Filter options interface for include/exclude patterns
+ */
+export interface CommonFilterOptions {
+  /**
+   * Include only items whose names contain any of these strings
+   * Applied before exclude filters
+   */
+  include?: string[];
+
+  /**
+   * Exclude items whose names contain any of these strings
+   * Applied after include filters
+   */
+  exclude?: string[];
+}
+
 export { LogLevel };
 
 /**
@@ -33,8 +50,9 @@ export interface AgentBaseOptions {
 
   /**
    * Used to define the Agent's system prompt.
+   * This completely replaces the default system prompt when provided.
    *
-   * @defaultValue `undefined`
+   * @defaultValue `undefined` (uses default prompt: "You are an intelligent assistant...")
    */
   instructions?: string;
 }
@@ -73,6 +91,11 @@ export interface AgentModelOptions {
 }
 
 /**
+ * Tool filtering options for controlling which tools are available
+ */
+export interface AgentToolFilterOptions extends CommonFilterOptions {}
+
+/**
  * Tool configuration options for agent capabilities and execution engine
  */
 export interface AgentToolOptions {
@@ -82,6 +105,11 @@ export interface AgentToolOptions {
    * @defaultValue `undefined`
    */
   tools?: Tool[];
+
+  /**
+   * Tool filtering options for controlling which tools are available
+   */
+  tool?: AgentToolFilterOptions;
 
   /**
    * Tool Call Engine configuration - supports both predefined engines and custom constructors.
